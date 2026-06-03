@@ -75,7 +75,7 @@ class VentasView(ttk.Frame):
         ).pack(anchor="w")
         tk.Label(
             header,
-            text="Carrito, metodo de pago y comprobante",
+            text="Carrito, forma de pago y comprobante de venta",
             bg=WHITE,
             fg=MUTED,
             font=(FONT, 9),
@@ -97,23 +97,50 @@ class VentasView(ttk.Frame):
 
         controls = ttk.Frame(cart_frame)
         controls.pack(fill="x", pady=8)
-        ttk.Button(controls, text="Quitar", style="Ghost.TButton", command=self.remove_item).pack(side="left")
-        ttk.Button(controls, text="Vaciar", style="Danger.TButton", command=self.clear_cart).pack(side="left", padx=6)
 
-        pay = ttk.Frame(cart_frame)
-        pay.pack(fill="x", pady=(8, 4))
-        ttk.Label(pay, text="Pago", style="Eyebrow.TLabel").grid(row=0, column=0, sticky="w")
-        ttk.Label(pay, text="Modalidad", style="Eyebrow.TLabel").grid(row=0, column=1, sticky="w", padx=(8, 0))
-        ttk.Label(pay, text="Descuento", style="Eyebrow.TLabel").grid(row=0, column=2, sticky="w", padx=(8, 0))
-        self.payment_combo = ttk.Combobox(pay, textvariable=self.payment, state="readonly", width=20)
-        self.modality_combo = ttk.Combobox(pay, textvariable=self.modality, state="readonly", width=20)
-        self.payment_combo.grid(row=1, column=0, sticky="ew")
-        self.modality_combo.grid(row=1, column=1, sticky="ew", padx=(8, 0))
-        ttk.Entry(pay, textvariable=self.discount, width=10).grid(row=1, column=2, padx=(8, 0))
-        ttk.Label(pay, text="Pago recibido", style="Eyebrow.TLabel").grid(row=2, column=0, sticky="w", pady=(8, 0))
-        ttk.Label(pay, text="Cambio", style="Eyebrow.TLabel").grid(row=2, column=1, sticky="w", padx=(8, 0), pady=(8, 0))
-        ttk.Entry(pay, textvariable=self.cash_received, width=14).grid(row=3, column=0, sticky="ew")
-        ttk.Label(pay, textvariable=self.change_text, style="SmallMetric.TLabel").grid(row=3, column=1, sticky="w", padx=(8, 0))
+        ttk.Button(
+            controls,
+            text="Quitar producto",
+            style="Ghost.TButton",
+            command=self.remove_item
+        ).pack(side="left")
+
+        ttk.Button(
+            controls,
+            text="Vaciar carrito",
+            style="Danger.TButton",
+            command=self.clear_cart
+        ).pack(side="left", padx=6)
+
+        pay = ttk.LabelFrame(cart_frame, text="Metodo de pago")
+        pay.pack(fill="x", pady=(10, 8), padx=2, ipady=6)
+
+        ttk.Label(pay, text="Forma de pago", style="Eyebrow.TLabel").grid(row=0, column=0, sticky="w", padx=6, pady=(4, 2))
+        ttk.Label(pay, text="Modalidad", style="Eyebrow.TLabel").grid(row=0, column=1, sticky="w", padx=6, pady=(4, 2))
+        ttk.Label(pay, text="Descuento", style="Eyebrow.TLabel").grid(row=0, column=2, sticky="w", padx=6, pady=(4, 2))
+
+        self.payment_combo = ttk.Combobox(
+            pay,
+            textvariable=self.payment,
+            state="readonly",
+            width=18,
+            values=("Efectivo", "Tarjeta")
+        )
+
+        self.modality_combo = ttk.Combobox(
+            pay,
+            textvariable=self.modality,
+            state="readonly",
+            width=18
+        )
+
+        self.payment_combo.grid(row=1, column=0, sticky="ew", padx=6)
+        self.modality_combo.grid(row=1, column=1, sticky="ew", padx=6)
+        ttk.Entry(pay, textvariable=self.discount, width=10).grid(row=1, column=2, sticky="ew", padx=6)
+
+        self.payment.set("Efectivo")
+        
+        
         for index in range(3):
             pay.columnconfigure(index, weight=1)
 
@@ -124,10 +151,10 @@ class VentasView(ttk.Frame):
         self.total_label.pack(anchor="w")
         ttk.Button(
             cart_frame,
-            text="Cobrar / Pagar",
+            text="PAGAR VENTA",
             style="Primary.TButton",
             command=self.register_sale,
-        ).pack(fill="x")
+        ).pack(fill="x", ipady=8, pady=(8, 4))
 
         self.receipt = tk.Text(cart_frame, height=9, wrap="none", bd=0, bg="#F8FAFC", fg="#1F2933", font=(FONT, 9))
         self.receipt.pack(fill="x", pady=(10, 0))
