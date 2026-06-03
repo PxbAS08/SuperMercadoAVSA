@@ -46,8 +46,13 @@ class ReporteController:
     def low_stock(self) -> list[dict]:
         return self.db.fetch_all(
             """
-            SELECT p.codigo, p.nombre, c.nombre AS categoria,
-                   i.stock_actual, i.stock_minimo
+            SELECT 
+                p.codigo,
+                p.nombre,
+                c.nombre AS categoria,
+                i.stock_actual,
+                i.stock_minimo,
+                GREATEST(i.stock_minimo - i.stock_actual, 0) AS cantidad_sugerida
             FROM inventario i
             JOIN productos p ON p.id = i.producto_id
             JOIN categorias c ON c.id = p.categoria_id
@@ -56,15 +61,18 @@ class ReporteController:
             """
         )
 
-    def sales_by_day(self, days: int = 7) -> list[dict]:
+    def sales_by_day(self, days: int = 30) -> list[dict]:
         return self.db.fetch_all(
             """
-            SELECT DATE(created_at) AS fecha, COALESCE(SUM(total), 0) AS total
-            FROM pedidos_cliente
+            SELECT 
+                DATE(created_at) AS fecha,
+                COUNT(*) AS cantidad_ventas,
+                COALESCE(SUM(total), 0) AS total
+            FROM ventas
             WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL %s DAY)
-              AND estado <> 'CANCELADA'
+            AND estado <> 'CANCELADA'
             GROUP BY DATE(created_at)
-            ORDER BY fecha
+            ORDER BY fecha DESC
             """,
             (days,),
         )

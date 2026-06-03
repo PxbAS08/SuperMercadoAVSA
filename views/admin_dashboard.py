@@ -10,6 +10,7 @@ from utils.helpers import money
 from utils.permissions import ADMIN, can, require_permission
 from views.categorias_view import CategoriasView
 from views.productos_view import ProductosView
+from views.ventas_view import VentasView
 from views.theme import (
     ACCENT,
     BRAND_GREEN,
@@ -42,7 +43,8 @@ class AdminDashboard(ttk.Frame):
         self.nav_logo = None
         self.nav_buttons = {}
         self._build()
-        self.show_home()
+        self.show_pos()
+
 
     def _build(self):
         self.configure(style="App.TFrame")
@@ -195,15 +197,13 @@ class AdminDashboard(ttk.Frame):
     def _menu_items(self):
         if self.user["rol"] == ADMIN:
             return [
-                ("Panel", self.show_home),
+                ("Punto de venta", self.show_pos),
                 ("Usuarios", self.show_users),
                 ("Productos", self.show_products),
                 ("Categorias", self.show_categories),
                 ("Inventario", self.show_inventory),
                 ("Pedidos", self.show_orders),
-                ("Historial", self.show_history),
                 ("Reportes", self.show_reports),
-                ("Configuracion", self.show_config),
             ]
         return []
 
@@ -260,6 +260,16 @@ class AdminDashboard(ttk.Frame):
             ("Historial completo", self.show_history),
         ]:
             ttk.Button(quick, text=label, style="Primary.TButton", command=command).pack(side="left", padx=6)
+
+    def show_pos(self):
+        if not self._guard("sales_write"):
+            return
+        self._set_active_nav("Punto de venta")
+        body = self._screen(
+            "Punto de venta",
+            "Venta directa para administrador."
+        )
+        VentasView(body, self.user).pack(fill="both", expand=True)
 
     def _metric_row(self, parent, items):
         metrics = ttk.Frame(parent, style="App.TFrame")
@@ -741,35 +751,79 @@ class AdminDashboard(ttk.Frame):
         if not can(self.user, "reports_admin"):
             messagebox.showwarning("Permisos", "No tienes permisos para acceder a esta seccion.")
             return
-        title = "Reportes administrativos"
-        body = self._screen(title)
+
+        body = self._screen(
+            "Reportes administrativos",
+            "Ventas por dia y productos que requieren compra."
+        )
+
         try:
-            summary = self.reports.get_dashboard_summary(self.user)
-            low_stock = self.reports.low_stock()
+            ventas_por_dia = self.reports.sales_by_day(30)
+            stock_faltante = self.reports.low_stock()
         except Exception as exc:
             messagebox.showerror("Reportes", str(exc))
             return
-        ttk.Label(
-            body,
-            text=f"Productos activos: {summary['productos']}   Stock bajo: {summary['stock_bajo']}   Pedidos hoy: {money(summary['ventas_hoy'])}",
-            style="Metric.TLabel",
-        ).pack(anchor="w", pady=(0, 14))
 
-        ttk.Label(body, text="Productos con stock bajo", style="Title.TLabel").pack(anchor="w")
-        columns = ("codigo", "nombre", "categoria", "stock", "minimo")
-        headings = {
+        ttk.Label(body, text="Ventas por dia", style="Title.TLabel").pack(anchor="w", pady=(0, 8))
+
+        ventas_frame = ttk.Frame(body)
+        ventas_frame.pack(fill="both", expand=True, pady=(0, 18))
+
+        ventas_columns = ("fecha", "cantidad", "total")
+        ventas_headings = {
+            "fecha": "Fecha",
+            "cantidad": "Ventas",
+            "total": "Total vendido",
+        }
+
+        ventas_tree, ventas_scroll = make_tree(ventas_frame, ventas_columns, ventas_headings)
+        ventas_tree.pack(side="left", fill="both", expand=True)
+        ventas_scroll.pack(side="right", fill="y")
+
+        for row in ventas_por_dia:
+            ventas_tree.insert(
+                "",
+                "end",
+                values=(
+                    row["fecha"],
+                    row["cantidad_ventas"],
+                    money(row["total"]),
+                ),
+            )
+
+        ttk.Label(body, text="Stock faltante por comprar", style="Title.TLabel").pack(anchor="w", pady=(8, 8))
+
+        stock_frame = ttk.Frame(body)
+        stock_frame.pack(fill="both", expand=True)
+
+        stock_columns = ("codigo", "nombre", "categoria", "stock", "minimo", "sugerida")
+        stock_headings = {
             "codigo": "Codigo",
             "nombre": "Producto",
             "categoria": "Categoria",
-            "stock": "Stock",
-            "minimo": "Min.",
+            "stock": "Stock actual",
+            "minimo": "Stock minimo",
+            "sugerida": "Comprar",
             "nombre_width": 280,
         }
-        tree, scroll = make_tree(body, columns, headings)
-        tree.pack(side="left", fill="both", expand=True)
-        scroll.pack(side="right", fill="y")
-        for item in low_stock:
-            tree.insert("", "end", values=(item["codigo"], item["nombre"], item["categoria"], item["stock_actual"], item["stock_minimo"]))
+
+        stock_tree, stock_scroll = make_tree(stock_frame, stock_columns, stock_headings)
+        stock_tree.pack(side="left", fill="both", expand=True)
+        stock_scroll.pack(side="right", fill="y")
+
+        for item in stock_faltante:
+            stock_tree.insert(
+                "",
+                "end",
+                values=(
+                    item["codigo"],
+                    item["nombre"],
+                    item["categoria"],
+                    item["stock_actual"],
+                    item["stock_minimo"],
+                    item["cantidad_sugerida"],
+                ),
+            )
 
     def show_orders(self):
         if not self._guard("orders_manage"):

@@ -122,12 +122,9 @@ Si MySQL no esta instalado, el servidor no esta activo o la base no fue importad
 ## Roles y permisos
 
 Administrador:
-
-- Acceso completo a panel, usuarios, productos, categorias, subcategorias, inventario, pedidos, devoluciones, historial, reportes y configuracion.
-- Puede dar de alta y editar productos, usuarios, categorias y subcategorias.
-- Puede consultar datos publicos de clientes, como nombre, correo, telefono y direccion.
-- Puede desactivar usuarios con confirmacion, evitando eliminar el ultimo administrador activo.
-- Ve graficas administrativas en el panel principal.
+- Acceso al punto de venta como ventana principal.
+- Gestión de usuarios, productos, categorías, inventario, pedidos y reportes.
+- Reportes de ventas por día y productos con stock faltante por comprar.
 
 Cliente:
 
@@ -135,18 +132,13 @@ Cliente:
 - No tiene acceso al panel administrativo ni a informacion interna.
 - Puede editar sus datos personales y gestionar sus tarjetas guardadas. Los datos bancarios privados no se muestran al administrador.
 
-## Modulos administrativos
-
-- Login y control de roles.
-- Panel de administrador con metricas operativas.
-- Grafica de pedidos por dia para administrador.
-- Gestion de productos y categorias.
-- Gestion de subcategorias dependientes de categoria.
-- Control de inventario con ajustes manuales.
-- Historial de operaciones.
-- Cambio de estado de pedidos: en proceso, listo para entrega, entregado, cancelado o devuelto.
-- Administracion de usuarios con datos de contacto y desactivacion segura.
-- Reporte de stock bajo y pedidos del dia.
+## Modulos Administrativos
+- Punto de venta para administrador.
+- Gestión de productos y categorías.
+- Control de inventario.
+- Administración de usuarios.
+- Reporte de ventas por día.
+- Reporte de stock faltante por comprar.
 - Consulta y seguimiento de pedidos de cliente.
 
 ## Modulos de cliente opcionales

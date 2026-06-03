@@ -13,11 +13,9 @@ PERMISSIONS = {
         "inventory_write",
         "sales_write",
         "sales_read_all",
-        "history_full",
         "returns_write",
         "orders_manage",
         "reports_admin",
-        "settings_manage",
     },
     CLIENTE: {
         "client_shop",
