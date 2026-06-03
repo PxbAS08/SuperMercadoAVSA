@@ -4,12 +4,12 @@ from tkinter import messagebox, ttk
 from controllers.producto_controller import ProductoController
 from controllers.venta_controller import VentaController
 from utils.helpers import money
-from views.theme import BRAND_GREEN_DARK, FONT, MUTED, WHITE, make_card, make_toolbar, make_tree
+from views.theme import BRAND_GREEN, BRAND_GREEN_DARK, ERROR, FONT, MUTED, WHITE, make_card, make_toolbar, make_tree
 
 
 class VentasView(ttk.Frame):
     def __init__(self, master, user: dict):
-        super().__init__(master, padding=12)
+        super().__init__(master, padding=0)
         self.user = user
         self.products = ProductoController()
         self.sales = VentaController()
@@ -23,12 +23,24 @@ class VentasView(ttk.Frame):
         self.payment = tk.StringVar()
         self.modality = tk.StringVar()
         self.current_total = 0.0
+        self.canvas = tk.Canvas(self, bg="#F5F7FA", highlightthickness=0)
+        self.scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+        self.canvas.pack(side="left", fill="both", expand=True)
+        self.scrollbar.pack(side="right", fill="y")
+        self.inner = ttk.Frame(self.canvas, padding=12, style="App.TFrame")
+        self.inner_window = self.canvas.create_window((0, 0), window=self.inner, anchor="nw")
+        self.inner.bind("<Configure>", self._sync_scroll_region)
+        self.canvas.bind("<Configure>", self._sync_inner_width)
+        self.canvas.bind("<Enter>", lambda _event: self.canvas.bind_all("<MouseWheel>", self._on_mousewheel))
+        self.canvas.bind("<Leave>", lambda _event: self.canvas.unbind_all("<MouseWheel>"))
         self._build()
         self.refresh_products()
 
     def _build(self):
         self.configure(style="App.TFrame")
-        top = make_toolbar(self)
+        container = self.inner
+        top = make_toolbar(container)
         ttk.Label(top, text="Buscar producto", style="Eyebrow.TLabel").pack(side="left", padx=(0, 8))
         ttk.Entry(top, textvariable=self.search, width=34).pack(side="left")
         ttk.Button(top, text="Buscar", style="Secondary.TButton", command=self.refresh_products).pack(side="left", padx=8)
@@ -38,8 +50,8 @@ class VentasView(ttk.Frame):
             side="left", padx=8
         )
 
-        panes = ttk.PanedWindow(self, orient="horizontal")
-        panes.pack(fill="both", expand=True)
+        panes = ttk.PanedWindow(container, orient="horizontal")
+        panes.pack(fill="x", expand=False)
 
         products_outer, products_frame = make_card(panes, padding=14)
         cart_outer, cart_frame = make_card(panes, padding=14)
@@ -61,6 +73,7 @@ class VentasView(ttk.Frame):
         product_table = ttk.Frame(products_frame)
         product_table.pack(fill="both", expand=True)
         self.product_tree, product_scroll = make_tree(product_table, columns, headings)
+        self.product_tree.configure(height=12)
         self.product_tree.pack(side="left", fill="both", expand=True)
         product_scroll.pack(side="right", fill="y")
 
@@ -90,53 +103,66 @@ class VentasView(ttk.Frame):
             "nombre_width": 230,
         }
         cart_table = ttk.Frame(cart_frame)
-        cart_table.pack(fill="both", expand=True)
+        cart_table.pack(fill="x", expand=False)
         self.cart_tree, cart_scroll = make_tree(cart_table, cart_columns, cart_headings)
-        self.cart_tree.pack(side="left", fill="both", expand=True)
+        self.cart_tree.configure(height=5)
+        self.cart_tree.pack(side="left", fill="x", expand=True)
         cart_scroll.pack(side="right", fill="y")
 
-        controls = ttk.Frame(cart_frame)
-        controls.pack(fill="x", pady=8)
+        controls = tk.Frame(cart_frame, bg=WHITE)
+        controls.pack(fill="x", pady=(8, 6))
 
-        ttk.Button(
+        tk.Button(
             controls,
             text="Quitar producto",
-            style="Ghost.TButton",
-            command=self.remove_item
+            command=self.remove_item,
+            relief="flat",
+            bd=0,
+            bg="#EEF2F6",
+            fg=BRAND_GREEN_DARK,
+            activebackground="#E8EEF3",
+            activeforeground=BRAND_GREEN_DARK,
+            padx=14,
+            pady=8,
+            font=(FONT, 10, "bold"),
+            cursor="hand2",
         ).pack(side="left")
 
-        ttk.Button(
+        tk.Button(
             controls,
             text="Vaciar carrito",
-            style="Danger.TButton",
-            command=self.clear_cart
-        ).pack(side="left", padx=6)
+            command=self.clear_cart,
+            relief="flat",
+            bd=0,
+            bg="#FDECEC",
+            fg=ERROR,
+            activebackground="#FAD2D2",
+            activeforeground=ERROR,
+            padx=14,
+            pady=8,
+            font=(FONT, 10, "bold"),
+            cursor="hand2",
+        ).pack(side="left", padx=8)
 
         pay = ttk.LabelFrame(cart_frame, text="Metodo de pago")
-        pay.pack(fill="x", pady=(10, 8), padx=2, ipady=6)
+        pay.pack(fill="x", pady=(8, 6), padx=2, ipady=6)
 
         ttk.Label(pay, text="Forma de pago", style="Eyebrow.TLabel").grid(row=0, column=0, sticky="w", padx=6, pady=(4, 2))
-        ttk.Label(pay, text="Modalidad", style="Eyebrow.TLabel").grid(row=0, column=1, sticky="w", padx=6, pady=(4, 2))
-        ttk.Label(pay, text="Descuento", style="Eyebrow.TLabel").grid(row=0, column=2, sticky="w", padx=6, pady=(4, 2))
+        ttk.Label(pay, text="Pago recibido", style="Eyebrow.TLabel").grid(row=0, column=1, sticky="w", padx=6, pady=(4, 2))
+        ttk.Label(pay, text="Cambio", style="Eyebrow.TLabel").grid(row=0, column=2, sticky="w", padx=6, pady=(4, 2))
 
         self.payment_combo = ttk.Combobox(
             pay,
             textvariable=self.payment,
             state="readonly",
             width=18,
-            values=("Efectivo", "Tarjeta")
-        )
-
-        self.modality_combo = ttk.Combobox(
-            pay,
-            textvariable=self.modality,
-            state="readonly",
-            width=18
+            values=("Efectivo", "Transferencia", "Tarjeta")
         )
 
         self.payment_combo.grid(row=1, column=0, sticky="ew", padx=6)
-        self.modality_combo.grid(row=1, column=1, sticky="ew", padx=6)
-        ttk.Entry(pay, textvariable=self.discount, width=10).grid(row=1, column=2, sticky="ew", padx=6)
+        self.cash_entry = ttk.Entry(pay, textvariable=self.cash_received, width=14)
+        self.cash_entry.grid(row=1, column=1, sticky="ew", padx=6)
+        ttk.Label(pay, textvariable=self.change_text, style="SmallMetric.TLabel").grid(row=1, column=2, sticky="w", padx=6)
 
         self.payment.set("Efectivo")
         
@@ -145,34 +171,48 @@ class VentasView(ttk.Frame):
             pay.columnconfigure(index, weight=1)
 
         total_box = tk.Frame(cart_frame, bg="#F4FBF6")
-        total_box.pack(fill="x", pady=(12, 8), ipadx=12, ipady=12)
+        total_box.pack(fill="x", pady=(8, 6), ipadx=12, ipady=10)
         tk.Label(total_box, text="Total a cobrar", bg="#F4FBF6", fg=MUTED, font=(FONT, 9, "bold")).pack(anchor="w")
-        self.total_label = tk.Label(total_box, text="$0.00", bg="#F4FBF6", fg=BRAND_GREEN_DARK, font=(FONT, 24, "bold"))
+        self.total_label = tk.Label(total_box, text="$0.00", bg="#F4FBF6", fg=BRAND_GREEN_DARK, font=(FONT, 22, "bold"))
         self.total_label.pack(anchor="w")
-        ttk.Button(
+        tk.Button(
             cart_frame,
             text="PAGAR VENTA",
-            style="Primary.TButton",
             command=self.register_sale,
-        ).pack(fill="x", ipady=8, pady=(8, 4))
+            relief="flat",
+            bd=0,
+            bg=BRAND_GREEN,
+            fg=WHITE,
+            activebackground="#178646",
+            activeforeground=WHITE,
+            padx=18,
+            pady=12,
+            font=(FONT, 12, "bold"),
+            cursor="hand2",
+        ).pack(fill="x", pady=(6, 4))
 
-        self.receipt = tk.Text(cart_frame, height=9, wrap="none", bd=0, bg="#F8FAFC", fg="#1F2933", font=(FONT, 9))
-        self.receipt.pack(fill="x", pady=(10, 0))
+        self.receipt = tk.Text(cart_frame, height=3, wrap="none", bd=0, bg="#F8FAFC", fg="#1F2933", font=(FONT, 9))
+        self.receipt.pack(fill="x", pady=(8, 0))
 
         try:
-            payments = self.sales.list_formas_pago()
             modalities = self.sales.list_modalidades()
-            self.payment_combo["values"] = payments
-            self.modality_combo["values"] = modalities
-            if payments:
-                self.payment.set(payments[0])
             if modalities:
-                self.modality.set(modalities[0])
-            self.payment_combo.bind("<<ComboboxSelected>>", lambda _event: self.update_change())
+                self.modality.set("Compra en tienda" if "Compra en tienda" in modalities else modalities[0])
         except Exception:
             pass
+        self.payment_combo.bind("<<ComboboxSelected>>", lambda _event: self.update_payment_fields())
         self.discount.trace_add("write", lambda *_args: self.render_cart())
         self.cash_received.trace_add("write", lambda *_args: self.update_change())
+        self.update_payment_fields()
+
+    def _sync_scroll_region(self, _event=None):
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+
+    def _sync_inner_width(self, event):
+        self.canvas.itemconfigure(self.inner_window, width=event.width)
+
+    def _on_mousewheel(self, event):
+        self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
     def refresh_products(self):
         for row in self.product_tree.get_children():
@@ -253,6 +293,14 @@ class VentasView(ttk.Frame):
             return
         self.change_text.set(money(max(paid - self.current_total, 0)))
 
+    def update_payment_fields(self):
+        if self.payment.get() == "Efectivo":
+            self.cash_entry.configure(state="normal")
+        else:
+            self.cash_received.set("")
+            self.cash_entry.configure(state="disabled")
+        self.update_change()
+
     def remove_item(self):
         selected = self.cart_tree.selection()
         if selected:
@@ -266,11 +314,14 @@ class VentasView(ttk.Frame):
 
     def register_sale(self):
         try:
-            try:
-                paid = float(self.cash_received.get() or 0)
-            except ValueError:
-                raise ValueError("Ingresa un pago recibido valido.")
-            if "efectivo" not in self.payment.get().lower() and paid <= 0:
+            if self.payment.get() == "Efectivo":
+                try:
+                    paid = float(self.cash_received.get() or 0)
+                except ValueError:
+                    raise ValueError("Ingresa un pago recibido valido.")
+                if paid <= 0:
+                    paid = self.current_total
+            else:
                 paid = self.current_total
             result = self.sales.register_sale(
                 self.user,

@@ -198,6 +198,7 @@ class AdminDashboard(ttk.Frame):
         if self.user["rol"] == ADMIN:
             return [
                 ("Punto de venta", self.show_pos),
+                ("Historial compras", self.show_sales_history),
                 ("Usuarios", self.show_users),
                 ("Productos", self.show_products),
                 ("Categorias", self.show_categories),
@@ -238,13 +239,13 @@ class AdminDashboard(ttk.Frame):
             [
                 ("Productos activos", summary["productos"]),
                 ("Stock bajo", summary["stock_bajo"]),
-                ("Pedidos de hoy", money(summary["ventas_hoy"])),
+                ("Ventas de hoy", money(summary["ventas_hoy"])),
                 ("Pedidos pendientes", summary["pedidos_pendientes"]),
             ],
         )
         chart_outer, chart_card = make_card(body, padding=18)
         chart_outer.pack(fill="x", pady=(20, 0))
-        ttk.Label(chart_card, text="Pedidos por dia", style="Title.TLabel").pack(anchor="w", pady=(0, 8))
+        ttk.Label(chart_card, text="Ventas por dia", style="Title.TLabel").pack(anchor="w", pady=(0, 8))
         canvas = tk.Canvas(chart_card, height=230, bg=WHITE, highlightthickness=0)
         canvas.pack(fill="x")
         try:
@@ -257,7 +258,7 @@ class AdminDashboard(ttk.Frame):
         for label, command in [
             ("Gestionar productos", self.show_products),
             ("Categorias", self.show_categories),
-            ("Historial completo", self.show_history),
+            ("Historial compras", self.show_sales_history),
         ]:
             ttk.Button(quick, text=label, style="Primary.TButton", command=command).pack(side="left", padx=6)
 
@@ -299,7 +300,7 @@ class AdminDashboard(ttk.Frame):
         height = 230
         canvas.delete("all")
         if not rows:
-            canvas.create_text(20, 20, anchor="nw", text="Sin pedidos registrados para graficar.", fill="#6B7280")
+            canvas.create_text(20, 20, anchor="nw", text="Sin ventas registradas para graficar.", fill="#6B7280")
             return
         max_total = max(float(row["total"]) for row in rows) or 1
         margin = 34
@@ -369,8 +370,9 @@ class AdminDashboard(ttk.Frame):
         if not can(self.user, "sales_read_all"):
             messagebox.showwarning("Permisos", "No tienes permisos para acceder a esta seccion.")
             return
-        subtitle = "Consulta tickets, detalle de productos, pagos y cancelaciones."
-        body = self._screen("Historial de ventas", subtitle)
+        self._set_active_nav("Historial compras")
+        subtitle = "Consulta compras registradas, productos vendidos, pagos y cancelaciones."
+        body = self._screen("Historial de compras", subtitle)
 
         sales_frame = ttk.Frame(body)
         sales_frame.pack(fill="both", expand=True)
@@ -440,7 +442,7 @@ class AdminDashboard(ttk.Frame):
                         ),
                     )
             except Exception as exc:
-                messagebox.showerror("Historial de ventas", str(exc))
+                messagebox.showerror("Historial de compras", str(exc))
 
         def load_details(_event=None):
             for row in detail_tree.get_children():

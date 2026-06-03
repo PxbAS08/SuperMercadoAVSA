@@ -1,0 +1,39 @@
+GUIA DE ENTREGA - AVSAware / SuperMercado ONIX
+
+Contenido importante del proyecto:
+
+- main.py: archivo principal de la aplicacion.
+- requirements.txt: dependencias de Python.
+- database/avsaware_schema.sql: crea base, tablas y datos base.
+- database/seed_data.sql: carga usuarios y productos de prueba.
+- assets/logo.png: logo de AVSAware.
+- Credenciales.txt: usuarios y contrasenas de prueba.
+- INSTALAR_DEPENDENCIAS.bat: crea .venv e instala dependencias.
+- INICIAR_AVSAWARE.bat: abre la aplicacion.
+
+Requisitos del equipo donde se abrira:
+
+1. Python 3.10 o superior.
+2. MySQL Server instalado y activo.
+3. MySQL Workbench para importar los scripts SQL.
+
+Pasos para abrir en otro equipo:
+
+1. Copiar la carpeta completa SuperMercado al equipo.
+2. Ejecutar INSTALAR_DEPENDENCIAS.bat.
+3. Abrir MySQL Workbench.
+4. Ejecutar database/avsaware_schema.sql.
+5. Ejecutar database/seed_data.sql.
+6. Ejecutar INICIAR_AVSAWARE.bat.
+
+Credenciales:
+
+Ver el archivo Credenciales.txt.
+
+Notas:
+
+- La base configurada por defecto es avsaware_supermercado.
+- El usuario MySQL por defecto es root sin contrasena.
+- Si MySQL usa otra contrasena, editar config/db_config.py.
+- No es necesario copiar la carpeta .venv; se puede regenerar con INSTALAR_DEPENDENCIAS.bat.
+- No incluir .git ni __pycache__ en la entrega final.

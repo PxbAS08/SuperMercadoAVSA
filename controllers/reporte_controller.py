@@ -19,7 +19,7 @@ class ReporteController:
             "ventas_hoy": self._scalar(
                 """
                 SELECT COALESCE(SUM(total), 0) total
-                FROM pedidos_cliente
+                FROM ventas
                 WHERE DATE(created_at) = CURDATE()
                   AND estado <> 'CANCELADA'
                 """

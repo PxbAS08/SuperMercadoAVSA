@@ -239,6 +239,7 @@ INSERT IGNORE INTO roles (nombre, descripcion) VALUES
 INSERT IGNORE INTO formas_pago (nombre) VALUES
   ('Efectivo'),
   ('Dinero electronico'),
+  ('Transferencia'),
   ('Tarjeta');
 
 INSERT IGNORE INTO modalidades_entrega (nombre) VALUES

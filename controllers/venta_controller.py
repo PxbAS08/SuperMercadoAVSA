@@ -397,6 +397,12 @@ class VentaController:
             row = cur.fetchone()
             if row:
                 return row["id"]
+        if name in {"Efectivo", "Transferencia", "Tarjeta"}:
+            cur.execute(
+                "INSERT INTO formas_pago (nombre) VALUES (%s)",
+                (name,),
+            )
+            return cur.lastrowid
         raise ValueError(f"No existe forma de pago: {name}")
 
     @staticmethod

@@ -1,0 +1,23 @@
+AVSAware / SuperMercado ONIX - Credenciales de prueba
+
+Usuarios de la aplicacion:
+
+1. Administrador
+   Usuario: admin
+   Contrasena: admin123
+
+2. Cliente
+   Usuario: cliente
+   Contrasena: cliente123
+
+Base de datos MySQL configurada por defecto:
+
+Host: 127.0.0.1
+Puerto: 3306
+Base de datos: avsaware_supermercado
+Usuario MySQL: root
+Contrasena MySQL: sin contrasena
+
+Nota:
+Si el equipo donde se instala MySQL tiene contrasena para root, actualizar
+config/db_config.py o usar variables de entorno AVSAWARE_DB_*.
